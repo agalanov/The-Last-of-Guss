@@ -65,15 +65,20 @@ git push
 3. **Добавьте переменные окружения:**
    ```
    VITE_API_URL=<URL вашего backend, например: https://backend-production-xxxx.up.railway.app>
-   BACKEND_URL=<URL вашего backend БЕЗ /api, например: https://backend-production-xxxx.up.railway.app>
    NODE_ENV=production
    PORT=80
    ```
    
-   **Важно:** 
-   - `VITE_API_URL` должен быть полным URL вашего backend сервиса (например: `https://backend-production-xxxx.up.railway.app`). Путь `/api` будет добавлен автоматически.
-   - `BACKEND_URL` нужен для проксирования через nginx (если `VITE_API_URL` не установлен). Должен быть БЕЗ `/api` в конце.
+   **ВАЖНО:** 
+   - `VITE_API_URL` - **ОБЯЗАТЕЛЬНО** должен быть полным URL вашего backend сервиса (например: `https://backend-production-xxxx.up.railway.app`). 
+   - Путь `/api` будет добавлен автоматически в коде frontend.
+   - Frontend будет делать запросы **напрямую к backend**, минуя nginx проксирование.
    - `PORT=80` - Railway автоматически установит эту переменную, но можно указать явно для надежности
+   
+   **Если получаете ошибку 502:**
+   - Убедитесь, что `VITE_API_URL` установлен правильно (полный URL без `/api`)
+   - Убедитесь, что backend сервис запущен и доступен
+   - Проверьте, что `FRONTEND_URL` в backend сервисе указывает на URL вашего frontend
 
 4. **Сгенерируйте домен:**
    - Settings → Networking → Generate Domain
