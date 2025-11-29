@@ -80,6 +80,7 @@
 4. Настройте **Variables**:
    ```
    VITE_API_URL=<URL вашего backend сервиса>
+   BACKEND_URL=<URL вашего backend сервиса>
    NODE_ENV=production
    ```
 
@@ -123,6 +124,7 @@ Railway автоматически использует `frontend/Dockerfile` е
 
 **Frontend требует:**
 - `VITE_API_URL` - URL backend API (должен начинаться с `https://`)
+- `BACKEND_URL` - URL backend API для Nginx проксирования (должен начинаться с `https://`)
 
 ### Порты
 
