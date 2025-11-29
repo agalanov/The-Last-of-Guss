@@ -29,6 +29,9 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 # Открываем порт (Railway автоматически установит переменную PORT)
 # Используем переменную PORT или 80 по умолчанию
 ENV PORT=80
+# BACKEND_URL должен быть установлен в Railway для проксирования /api запросов
+# Если не установлен, установите его в Railway: BACKEND_URL=https://your-backend-url.railway.app
+ENV BACKEND_URL=""
 
 EXPOSE 80
 
