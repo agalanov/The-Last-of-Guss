@@ -7,8 +7,8 @@ WORKDIR /app
 # Копируем package.json и package-lock.json
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm ci --omit=dev
+# Устанавливаем все зависимости (включая devDependencies для сборки)
+RUN npm ci
 
 # Копируем остальные файлы
 COPY . .
@@ -30,4 +30,5 @@ EXPOSE 80
 
 # Nginx запускается автоматически
 CMD ["nginx", "-g", "daemon off;"]
+
 
