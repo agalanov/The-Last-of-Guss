@@ -5,7 +5,7 @@ const getBaseURL = () => {
     // В production используем переменную окружения VITE_API_URL
     // Если указан полный URL, используем его (должен включать /api в конце)
     // Если не указан, используем относительный путь для development
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env?.VITE_API_URL;
     if (apiUrl) {
         // Если URL уже содержит /api, используем как есть, иначе добавляем
         return apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
