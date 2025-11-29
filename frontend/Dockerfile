@@ -29,6 +29,7 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 # Открываем порт (Railway автоматически установит переменную PORT)
 # Используем переменную PORT или 80 по умолчанию
 ENV PORT=80
+ENV BACKEND_URL=""
 
 EXPOSE 80
 
