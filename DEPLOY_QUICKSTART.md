@@ -58,17 +58,20 @@ git push
 
 2. **Настройте сервис:**
    - **Settings** → **Root Directory**: `frontend`
-   - **Settings** → **Build Command**: `npm install && npm run build`
-   - **Settings** → **Start Command**: `npm run preview -- --port $PORT --host 0.0.0.0`
+   - **Settings** → **Dockerfile Path**: `Dockerfile` (или оставьте пустым, Railway найдет автоматически)
+   - **Settings** → **Build Command**: (оставьте пустым, используется Dockerfile)
+   - **Settings** → **Start Command**: (оставьте пустым, nginx запускается автоматически через Dockerfile)
 
 3. **Добавьте переменные окружения:**
    ```
    VITE_API_URL=<URL вашего backend, например: https://backend-production-xxxx.up.railway.app>
    NODE_ENV=production
-   PORT=5173
+   PORT=80
    ```
    
-   **Важно:** `VITE_API_URL` должен быть полным URL вашего backend сервиса (например: `https://backend-production-xxxx.up.railway.app`). Путь `/api` будет добавлен автоматически.
+   **Важно:** 
+   - `VITE_API_URL` должен быть полным URL вашего backend сервиса (например: `https://backend-production-xxxx.up.railway.app`). Путь `/api` будет добавлен автоматически.
+   - `PORT=80` - Railway автоматически установит эту переменную, но можно указать явно для надежности
 
 4. **Сгенерируйте домен:**
    - Settings → Networking → Generate Domain

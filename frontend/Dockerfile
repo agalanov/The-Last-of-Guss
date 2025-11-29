@@ -22,13 +22,17 @@ FROM nginx:alpine
 # Копируем собранные файлы из builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Копируем конфигурацию nginx (опционально, если нужна кастомная)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Копируем конфигурацию nginx как шаблон
+# Nginx автоматически обработает переменные через envsubst при старте
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Открываем порт
+# Открываем порт (Railway автоматически установит переменную PORT)
+# Используем переменную PORT или 80 по умолчанию
+ENV PORT=80
+
 EXPOSE 80
 
-# Nginx запускается автоматически
-CMD ["nginx", "-g", "daemon off;"]
+# Nginx автоматически обработает шаблон и запустится
+# docker-entrypoint.sh обработает файлы в /etc/nginx/templates/
 
 

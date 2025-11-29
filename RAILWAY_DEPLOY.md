@@ -72,8 +72,9 @@
 2. Выберите тот же репозиторий
 3. В настройках сервиса:
    - **Root Directory**: `frontend`
-   - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `npm run preview` (или используйте Dockerfile)
+   - **Dockerfile Path**: `Dockerfile` (Railway автоматически обнаружит его)
+   - **Build Command**: (оставьте пустым, сборка выполняется через Dockerfile)
+   - **Start Command**: (оставьте пустым, nginx запускается автоматически через Dockerfile)
    - **Watch Paths**: `frontend/**`
 
 4. Настройте **Variables**:
