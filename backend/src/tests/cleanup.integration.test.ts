@@ -2,6 +2,12 @@ import { cleanupDatabase, testDb } from '../tests/setup';
 import { users } from '../db/schema';
 
 describe('Cleanup Test', () => {
+    afterAll(async () => {
+        await cleanupDatabase();
+        // Даем время на закрытие соединения
+        await new Promise(resolve => setTimeout(resolve, 500));
+    });
+
     it('should cleanup database', async () => {
         try {
             console.log('Starting cleanup test...');
