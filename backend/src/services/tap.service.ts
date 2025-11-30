@@ -1,6 +1,6 @@
 import { db, sql as pgSql } from '../db';
 import { playerStats, rounds } from '../db/schema';
-import { eq, and, sql as drizzleSql } from 'drizzle-orm';
+import { eq, sql as drizzleSql } from 'drizzle-orm';
 import { getRoundState } from './round.service';
 
 // Обработка тапа по гусю

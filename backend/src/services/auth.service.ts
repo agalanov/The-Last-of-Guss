@@ -8,7 +8,7 @@ const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Определение роли на основе имени пользователя
-function determineRole(username: string): 'admin' | 'nikita' | 'survivor' {
+export function determineRole(username: string): 'admin' | 'nikita' | 'survivor' {
     if (username === 'admin') return 'admin';
     if (username === 'Никита') return 'nikita';
     return 'survivor';
