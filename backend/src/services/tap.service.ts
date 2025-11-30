@@ -10,89 +10,76 @@ export async function processTap(roundId: string, userId: string, userRole: stri
     taps: number;
     message?: string;
 } | null> {
-    // Начинаем транзакцию для обеспечения консистентности
+    // Начинаем транзакцию для обеспечения консистентности (обновление статистики и раунда)
     return await pgSql.begin(async (_tx) => {
         const txDb = db;
 
-        // Получаем раунд
+        // 1. Получаем раунд (чтение без блокировки)
         const [round] = await txDb.select().from(rounds).where(eq(rounds.id, roundId));
 
         if (!round) {
             return { success: false, score: 0, taps: 0, message: 'Раунд не найден' };
         }
 
-        // Проверяем, что раунд активен
+        // 2. Проверяем, что раунд активен
         const state = getRoundState(round);
         if (state !== 'active') {
             return { success: false, score: 0, taps: 0, message: 'Раунд не активен' };
         }
 
-        // Получаем или создаем статистику игрока с блокировкой строки (FOR UPDATE)
-        // Это предотвращает race conditions при одновременных тапах
-        const existingStats = await txDb
-            .select()
-            .from(playerStats)
-            .where(
-                and(
-                    eq(playerStats.roundId, roundId),
-                    eq(playerStats.userId, userId)
-                )
-            )
-            .for('update'); // Блокируем строку для обновления
+        // 3. Атомарное обновление статистики игрока (Upsert)
+        // Используем INSERT ... ON CONFLICT DO UPDATE для атомарности
+        // Это избавляет от необходимости делать SELECT ... FOR UPDATE и защищает от Race Conditions
 
-        let currentTaps = 0;
-        let currentScore = 0;
+        const isNikita = userRole === 'nikita';
+        const initialScore = isNikita ? 0 : 1; // Первый тап дает 1 очко (1 % 11 != 0)
 
-        if (existingStats.length > 0) {
-            currentTaps = existingStats[0].taps;
-            currentScore = existingStats[0].score;
-        }
+        // SQL для обновления очков:
+        // Если не Никита: score + (если (taps + 1) % 11 == 0 то 10 иначе 1)
+        // Если Никита: score (не меняется)
+        const updateScoreSql = isNikita
+            ? playerStats.score
+            : drizzleSql`${playerStats.score} + CASE WHEN (${playerStats.taps} + 1) % 11 = 0 THEN 10 ELSE 1 END`;
 
-        // Увеличиваем счетчик тапов
-        const newTaps = currentTaps + 1;
-
-        // Рассчитываем очки
-        // Если роль "nikita", очки не начисляются
-        let pointsToAdd = 0;
-        if (userRole !== 'nikita') {
-            // Каждый 11-й тап дает 10 очков, остальные - 1 очко
-            pointsToAdd = (newTaps % 11 === 0) ? 10 : 1;
-        }
-
-        const newScore = currentScore + pointsToAdd;
-
-        // Обновляем или создаем статистику игрока
-        if (existingStats.length > 0) {
-            await txDb
-                .update(playerStats)
-                .set({
-                    taps: newTaps,
-                    score: newScore,
-                })
-                .where(eq(playerStats.id, existingStats[0].id));
-        } else {
-            await txDb.insert(playerStats).values({
+        const [updatedStats] = await txDb
+            .insert(playerStats)
+            .values({
                 roundId,
                 userId,
-                taps: newTaps,
-                score: newScore,
+                taps: 1,
+                score: initialScore,
+            })
+            .onConflictDoUpdate({
+                target: [playerStats.roundId, playerStats.userId],
+                set: {
+                    taps: drizzleSql`${playerStats.taps} + 1`,
+                    score: updateScoreSql,
+                },
+            })
+            .returning({
+                taps: playerStats.taps,
+                score: playerStats.score,
             });
-        }
 
-        // Обновляем общий счет раунда (только если роль не "nikita")
-        if (userRole !== 'nikita') {
+        // 4. Обновляем общий счет раунда (только если роль не "nikita")
+        if (!isNikita) {
+            // Вычисляем, сколько очков было добавлено
+            // Логика дублируется из SQL, но это необходимо для обновления раунда
+            // Мы знаем новые тапы, можем вычислить сколько очков дал этот тап
+            const pointsAdded = (updatedStats.taps % 11 === 0) ? 10 : 1;
+
             await txDb
                 .update(rounds)
                 .set({
-                    totalScore: drizzleSql`${rounds.totalScore} + ${pointsToAdd}`,
+                    totalScore: drizzleSql`${rounds.totalScore} + ${pointsAdded}`,
                 })
                 .where(eq(rounds.id, roundId));
         }
 
         return {
             success: true,
-            score: newScore,
-            taps: newTaps,
+            score: updatedStats.score,
+            taps: updatedStats.taps,
         };
     });
 }
